@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <title>mObywatel</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="assets/card.css?v=1.2">
+  <link rel="stylesheet" href="assets/main.css">
+  <link rel="icon" type="image/x-icon" href="images/otM5jOA.png">
+  <link rel="apple-touch-icon" href="images/otM5jOA.png">
+  <link rel="shortcut icon" href="images/otM5jOA.png">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <style>
+    .main_wrapper {
+      margin-bottom: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;/* 100% wysokości minus paski */
+  padding: 20px 0;
+}
+    #camera-container {
+  border-radius: 20px;
+  width: 90%;
+  max-width: 550px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 2px solid none;
+  height: 680px;
+  position: relative;
+}
+    #video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    /* Ramka na środku */
+.scan-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+  pointer-events: none; /* nie blokuje kliknięć w kamerę */
+}
+
+/* Wspólne style narożników */
+.corner {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border: 5px solid white;
+  box-sizing: border-box;
+}
+
+/* Lewy górny róg */
+.corner.tl {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: 25px
+}
+
+/* Prawy górny róg */
+.corner.tr {
+  top: 0;
+  right: 0;
+  border-left: none;
+  border-bottom: none;
+  border-top-right-radius: 25px
+}
+
+/* Lewy dolny róg */
+.corner.bl {
+  bottom: 0;
+  left: 0;
+  border-right: none;
+  border-top: none;
+  border-bottom-left-radius: 25px
+}
+
+/* Prawy dolny róg */
+.corner.br {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+  border-bottom-right-radius: 25px
+}
+.buttonn{
+    width: 550;
+    width: 90%;
+    text-align: center;
+    height: 50px;
+    border: 1px solid ;
+    border-radius: 40px;
+    box-shadow: none;
+    background-color: #f5f6fb;
+    color: rgb(6, 71, 146);
+    font-size: 20px;
+    font-family: poppins;
+}
+.przycisk{
+    text-align: center;
+}
+
+  </style>
+</head>
+<body>
+
+  <div class="top_grid">
+    <div class="action_grid" style="width: 25%;">
+      <img src="images/BDZT6fX.png" class="back_img">
+      <p onclick="sendTo('card')" class="back_text">mDowód</p>
+    </div>
+    <p class="title_text" style="text-align: center;">Zeskanuj kod QR</p>
+  </div>
+
+  <div class="bottom_bar">
+    <div class="bottom_bar_grid">
+      <div class="bottom_element_grid" send="home">
+        <div class="bottom_element_image home_open"></div>
+        <p class="bottom_element_text">Pulpit</p>
+      </div>
+      <div class="bottom_element_grid" send="documents">
+        <div class="bottom_element_image documents"></div>
+        <p class="bottom_element_text open">Dokumenty</p>
+      </div>
+      <div class="bottom_element_grid" send="services">
+        <div class="bottom_element_image services"></div>
+        <p class="bottom_element_text">Usługi</p>
+      </div>
+      <div class="bottom_element_grid" send="qr">
+        <div class="bottom_element_image qr"></div>
+        <p class="bottom_element_text">Kod QR</p>
+      </div>
+      <div class="bottom_element_grid" send="more">
+        <div class="bottom_element_image more"></div>
+        <p class="bottom_element_text">Więcej</p>
+      </div>
+    </div>
+  </div>
+  <p style="margin-top: 70px; margin-left: 30px; margin-bottom: 0px; font-size: 14px;">Umieść kod QR w ramce, aby go zeskanować.</p>
+  <div class="main_wrapper" style="margin-top: 0px;">
+  <div id="camera-container" style="position: relative;">
+    <!-- Html5Qrcode utworzy tutaj element do skanowania -->
+    <div class="scan-frame" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; pointer-events: none;">
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+    </div>
+  </div>
+  </div>
+  <div class="przycisk">
+  <button class="buttonn" id="manual-code-btn">Wpisz kod</button>
+  </div>
+  
+  <div id="scanned-result" style="display: none; margin: 20px; padding: 15px; background: white; border-radius: 10px; text-align: center;">
+    <p style="font-weight: 600; margin-bottom: 10px;">Zeskanowany kod:</p>
+    <p id="scanned-code" style="font-size: 18px; color: var(--text); word-break: break-all;"></p>
+    <button class="buttonn" onclick="document.getElementById('scanned-result').style.display='none'; html5QrCode.resume();" style="margin-top: 10px;">Skanuj dalej</button>
+  </div>
+
+  <script>
+    let html5QrCode;
+    
+    async function startQRScanning() {
+      try {
+        html5QrCode = new Html5Qrcode("camera-container");
+        
+        const config = {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0
+        };
+        
+        // Uruchom skanowanie
+        await html5QrCode.start(
+          { facingMode: "environment" }, 
+          config,
+          onScanSuccess,
+          onScanFailure
+        );
+      } catch (err) {
+        console.error("Nie udało się uruchomić skanera:", err);
+        // Fallback do zwykłej kamery
+        startCamera();
+      }
+    }
+    
+    function onScanSuccess(decodedText, decodedResult) {
+      // Zatrzymaj skanowanie
+      html5QrCode.pause();
+      
+      // Wyświetl wynik
+      document.getElementById('scanned-code').textContent = decodedText;
+      document.getElementById('scanned-result').style.display = 'block';
+      
+      // Opcjonalnie: automatyczne wznowienie po 3 sekundach
+      // setTimeout(() => {
+      //   document.getElementById('scanned-result').style.display = 'none';
+      //   html5QrCode.resume();
+      // }, 3000);
+    }
+    
+    function onScanFailure(error) {
+      // Błędy są ignorowane - skanowanie kontynuuje się
+    }
+    
+    async function startCamera() {
+      try {
+        const constraints = {
+          video: {
+            facingMode: { ideal: "environment" }
+          },
+          audio: false
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const videoElement = document.getElementById('video');
+        if (videoElement) {
+          videoElement.srcObject = stream;
+        }
+      } catch (err) {
+        console.error("Nie udało się uruchomić kamery:", err);
+      }
+    }
+
+    // Uruchom skanowanie QR po załadowaniu strony
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof Html5Qrcode !== 'undefined') {
+        startQRScanning();
+      } else {
+        // Fallback jeśli biblioteka nie załadowała się
+        startCamera();
+      }
+    });
+    
+    // Przycisk "Wpisz kod"
+    document.getElementById('manual-code-btn').addEventListener('click', function() {
+      var code = prompt("Wprowadź kod QR:");
+      if (code) {
+        document.getElementById('scanned-code').textContent = code;
+        document.getElementById('scanned-result').style.display = 'block';
+        if (html5QrCode) {
+          html5QrCode.pause();
+        }
+      }
+    });
+  </script>
+  <script src="assets/bar.js?v=2.0"></script>
+    <script src="assets/manifest.js"></script>
+</body>
+</html>
