@@ -54,6 +54,9 @@ function createQRModal(qrData, codeNumber) {
     var existingModal = document.getElementById('qr-modal');
     if (existingModal) {
         existingModal.remove();
+        if (existingModal.timerInterval) {
+            clearInterval(existingModal.timerInterval);
+        }
     }
     
     // Utwórz modal
@@ -66,7 +69,7 @@ function createQRModal(qrData, codeNumber) {
         width: 100%;
         height: 100%;
         background-color: rgba(0, 0, 0, 0.7);
-        z-index: 1000;
+        z-index: 10000;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -78,26 +81,43 @@ function createQRModal(qrData, codeNumber) {
         border-radius: 20px;
         padding: 30px;
         max-width: 90%;
+        width: 400px;
         text-align: center;
         box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        display: flex;
+        flex-direction: column;
+        position: relative;
     `;
     
+    // Tytuł
     var title = document.createElement('p');
-    title.textContent = 'Kod QR';
+    title.textContent = 'Pokaż kod QR';
     title.style.cssText = `
         font-size: 24px;
         font-weight: bold;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         color: var(--text);
+        margin-top: 0;
     `;
     
-    // Kod QR (użyjemy prostego wyświetlacza - w rzeczywistości potrzebna byłaby biblioteka QR)
+    // Tekst instrukcji
+    var instructionText = document.createElement('p');
+    instructionText.textContent = 'Poproś osobę, której sprawdzasz dokument, aby zeskanowała lub przepisała ten kod w swojej mObywatel.';
+    instructionText.style.cssText = `
+        font-size: 14px;
+        color: #666;
+        margin: 0 0 20px 0;
+        line-height: 1.5;
+        text-align: left;
+    `;
+    
+    // Kod QR
     var qrContainer = document.createElement('div');
     qrContainer.id = 'qrcode';
     qrContainer.style.cssText = `
         width: 250px;
         height: 250px;
-        margin: 20px auto;
+        margin: 0 auto 20px auto;
         border: 2px solid #ddd;
         border-radius: 10px;
         display: flex;
@@ -106,40 +126,75 @@ function createQRModal(qrData, codeNumber) {
         background-color: #f5f5f5;
     `;
     
-    // Wyświetl kod numeryczny
-    var codeDisplay = document.createElement('p');
-    codeDisplay.textContent = codeNumber;
-    codeDisplay.style.cssText = `
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--text);
-        margin: 15px 0;
-        letter-spacing: 3px;
-        font-family: 'Courier New', monospace;
+    // Timer - kod wygasa za 3 minuty
+    var timerContainer = document.createElement('div');
+    timerContainer.id = 'qr-timer';
+    timerContainer.style.cssText = `
+        margin: 10px 0 20px 0;
         padding: 10px;
-        background-color: #f5f6fb;
+        background-color: #fff3cd;
         border-radius: 8px;
+        border: 1px solid #ffc107;
     `;
     
-    // Informacja o kodzie QR
-    var info = document.createElement('p');
-    info.textContent = 'Zeskanuj ten kod, aby zweryfikować dokument';
-    info.style.cssText = `
-        font-size: 14px;
-        color: #666;
-        margin: 15px 0 5px 0;
-    `;
-    
-    // Dodatkowa informacja o kodzie numerycznym
-    var codeInfo = document.createElement('p');
-    codeInfo.textContent = 'Kod dokumentu:';
-    codeInfo.style.cssText = `
+    var timerLabel = document.createElement('p');
+    timerLabel.textContent = 'Kod wygasa za:';
+    timerLabel.style.cssText = `
         font-size: 12px;
-        color: #999;
-        margin: 5px 0;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        color: #856404;
+        margin: 0 0 5px 0;
     `;
+    
+    var timerDisplay = document.createElement('p');
+    timerDisplay.id = 'qr-timer-display';
+    timerDisplay.textContent = '3:00';
+    timerDisplay.style.cssText = `
+        font-size: 20px;
+        font-weight: bold;
+        color: #856404;
+        margin: 0;
+        font-family: 'Courier New', monospace;
+    `;
+    
+    timerContainer.appendChild(timerLabel);
+    timerContainer.appendChild(timerDisplay);
+    
+    // Stopka z flagą i godłem
+    var footer = document.createElement('div');
+    footer.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+        width: 100%;
+    `;
+    
+    // Flaga Polski (po lewej)
+    var flagImg = document.createElement('img');
+    flagImg.src = 'images/gzot1Pt.gif';
+    flagImg.draggable = false;
+    flagImg.alt = 'Flaga Polski';
+    flagImg.style.cssText = `
+        width: 50px;
+        height: auto;
+        object-fit: contain;
+    `;
+    
+    // Godło Polski (po prawej)
+    var eagleImg = document.createElement('img');
+    eagleImg.src = 'images/R5yccCK.gif';
+    eagleImg.draggable = false;
+    eagleImg.alt = 'Godło Polski';
+    eagleImg.style.cssText = `
+        width: 35px;
+        height: auto;
+        object-fit: contain;
+    `;
+    
+    footer.appendChild(flagImg);
+    footer.appendChild(eagleImg);
     
     // Przycisk zamknij
     var closeBtn = document.createElement('button');
@@ -154,10 +209,35 @@ function createQRModal(qrData, codeNumber) {
         font-weight: 600;
         margin-top: 20px;
         cursor: pointer;
+        width: 100%;
     `;
     closeBtn.addEventListener('click', () => {
+        if (modal.timerInterval) {
+            clearInterval(modal.timerInterval);
+        }
         modal.remove();
     });
+    
+    // Uruchom timer (3 minuty = 180 sekund)
+    var timeLeft = 180; // 3 minuty w sekundach
+    modal.timerInterval = setInterval(function() {
+        timeLeft--;
+        if (timeLeft <= 0) {
+            clearInterval(modal.timerInterval);
+            timerDisplay.textContent = '0:00';
+            timerContainer.style.backgroundColor = '#f8d7da';
+            timerContainer.style.borderColor = '#dc3545';
+            timerLabel.textContent = 'Kod wygasł';
+            timerLabel.style.color = '#721c24';
+            timerDisplay.style.color = '#721c24';
+            // Opcjonalnie: zamknij modal automatycznie
+            // setTimeout(() => modal.remove(), 2000);
+        } else {
+            var minutes = Math.floor(timeLeft / 60);
+            var seconds = timeLeft % 60;
+            timerDisplay.textContent = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+        }
+    }, 1000);
     
     // Użyj biblioteki QRCode do generowania kodu QR
     QRCode.toCanvas(qrData, {
@@ -184,21 +264,22 @@ function createQRModal(qrData, codeNumber) {
         }
     });
     
+    // Dodaj elementy do modala
     modalContent.appendChild(title);
+    modalContent.appendChild(instructionText);
     modalContent.appendChild(qrContainer);
-    modalContent.appendChild(codeInfo);
-    modalContent.appendChild(codeDisplay);
-    modalContent.appendChild(info);
+    modalContent.appendChild(timerContainer);
+    modalContent.appendChild(footer);
     modalContent.appendChild(closeBtn);
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
     
-    // Przesuń modal na wierzch
-    modal.style.zIndex = '10000';
-    
     // Zamknij po kliknięciu w tło
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
+            if (modal.timerInterval) {
+                clearInterval(modal.timerInterval);
+            }
             modal.remove();
         }
     });
