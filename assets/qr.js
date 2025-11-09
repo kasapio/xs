@@ -59,7 +59,17 @@ function createQRModal(qrData, codeNumber) {
         }
     }
     
-    // Utwórz modal
+    // Wyciągnij tylko cyfry z numeru dokumentu dla wyświetlenia
+    var numericCode = codeNumber.replace(/\s+/g, '').replace(/[^0-9]/g, '');
+    if (numericCode.length === 0) {
+        numericCode = Math.floor(100000 + Math.random() * 900000).toString();
+    } else if (numericCode.length > 6) {
+        numericCode = numericCode.substring(0, 6);
+    } else if (numericCode.length < 6) {
+        numericCode = numericCode.padStart(6, '0');
+    }
+    
+    // Utwórz modal - pełnoekranowy overlay z ciemnym tłem
     var modal = document.createElement('div');
     modal.id = 'qr-modal';
     modal.style.cssText = `
@@ -68,96 +78,154 @@ function createQRModal(qrData, codeNumber) {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: #1a1a1a;
         z-index: 10000;
         display: flex;
-        justify-content: center;
-        align-items: center;
+        flex-direction: column;
+        overflow-y: auto;
     `;
     
+    // Header z przyciskiem zamknij
+    var header = document.createElement('div');
+    header.style.cssText = `
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 15px 20px;
+        width: 100%;
+        box-sizing: border-box;
+    `;
+    
+    var closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Zamknij';
+    closeBtn.style.cssText = `
+        background-color: transparent;
+        color: white;
+        border: none;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 8px 16px;
+    `;
+    closeBtn.addEventListener('click', () => {
+        if (modal.timerInterval) {
+            clearInterval(modal.timerInterval);
+        }
+        modal.remove();
+    });
+    header.appendChild(closeBtn);
+    
+    // Główna zawartość
     var modalContent = document.createElement('div');
     modalContent.style.cssText = `
-        background-color: white;
-        border-radius: 20px;
-        padding: 30px;
-        max-width: 90%;
-        width: 400px;
-        text-align: center;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        flex: 1;
         display: flex;
         flex-direction: column;
-        position: relative;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 20px;
+        padding-top: 40px;
+        text-align: center;
+        color: white;
     `;
     
     // Tytuł
-    var title = document.createElement('p');
+    var title = document.createElement('h1');
     title.textContent = 'Pokaż kod QR';
     title.style.cssText = `
-        font-size: 24px;
+        font-size: 32px;
         font-weight: bold;
-        margin-bottom: 15px;
-        color: var(--text);
-        margin-top: 0;
+        margin: 0 0 25px 0;
+        color: white;
+        letter-spacing: -0.5px;
     `;
     
     // Tekst instrukcji
     var instructionText = document.createElement('p');
-    instructionText.textContent = 'Poproś osobę, której sprawdzasz dokument, aby zeskanowała lub przepisała ten kod w swojej mObywatel.';
+    instructionText.textContent = 'Poproś osobę, której sprawdzasz dokument, aby zeskanowała lub przepisała ten kod w swojej aplikacji mObywatel.';
     instructionText.style.cssText = `
-        font-size: 14px;
-        color: #666;
-        margin: 0 0 20px 0;
+        font-size: 15px;
+        color: rgba(255, 255, 255, 0.85);
+        margin: 0 0 35px 0;
         line-height: 1.5;
-        text-align: left;
+        max-width: 85%;
+        text-align: center;
     `;
     
-    // Kod QR
+    // Kod QR - większy, jak na obrazku
     var qrContainer = document.createElement('div');
     qrContainer.id = 'qrcode';
     qrContainer.style.cssText = `
-        width: 250px;
-        height: 250px;
-        margin: 0 auto 20px auto;
-        border: 2px solid #ddd;
-        border-radius: 10px;
+        width: 300px;
+        height: 300px;
+        margin: 0 auto 25px auto;
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: #f5f5f5;
-    `;
-    
-    // Timer - kod wygasa za 3 minuty
-    var timerContainer = document.createElement('div');
-    timerContainer.id = 'qr-timer';
-    timerContainer.style.cssText = `
-        margin: 10px 0 20px 0;
-        padding: 10px;
-        background-color: #fff3cd;
+        background-color: white;
         border-radius: 8px;
-        border: 1px solid #ffc107;
+        padding: 20px;
+        box-sizing: border-box;
     `;
     
-    var timerLabel = document.createElement('p');
-    timerLabel.textContent = 'Kod wygasa za:';
-    timerLabel.style.cssText = `
-        font-size: 12px;
-        color: #856404;
-        margin: 0 0 5px 0;
-    `;
-    
-    var timerDisplay = document.createElement('p');
-    timerDisplay.id = 'qr-timer-display';
-    timerDisplay.textContent = '3:00';
-    timerDisplay.style.cssText = `
-        font-size: 20px;
+    // Kod numeryczny - duży, biały, pogrubiony, jak na obrazku
+    var codeDisplay = document.createElement('div');
+    codeDisplay.textContent = numericCode;
+    codeDisplay.style.cssText = `
+        font-size: 52px;
         font-weight: bold;
-        color: #856404;
-        margin: 0;
-        font-family: 'Courier New', monospace;
+        color: white;
+        margin: 0 0 25px 0;
+        letter-spacing: 6px;
+        font-family: 'Roboto', 'Arial', sans-serif;
+        line-height: 1.2;
     `;
     
-    timerContainer.appendChild(timerLabel);
-    timerContainer.appendChild(timerDisplay);
+    // Timer z paskiem postępu
+    var timerWrapper = document.createElement('div');
+    timerWrapper.style.cssText = `
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto 40px auto;
+    `;
+    
+    // Pasek postępu (niebieska linia)
+    var progressBarContainer = document.createElement('div');
+    progressBarContainer.style.cssText = `
+        width: 100%;
+        height: 3px;
+        background-color: rgba(255, 255, 255, 0.1);
+        margin-bottom: 10px;
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+    `;
+    
+    var progressBar = document.createElement('div');
+    progressBar.id = 'qr-progress-bar';
+    progressBar.style.cssText = `
+        width: 100%;
+        height: 100%;
+        background-color: #0066cc;
+        border-radius: 2px;
+        transition: transform 1s linear;
+        transform-origin: left;
+    `;
+    
+    progressBarContainer.appendChild(progressBar);
+    
+    // Timer text
+    var timerText = document.createElement('p');
+    timerText.id = 'qr-timer-text';
+    timerText.textContent = 'Kod wygaśnie za: 3 min 0 sek.';
+    timerText.style.cssText = `
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.7);
+        margin: 0;
+    `;
+    
+    timerWrapper.appendChild(progressBarContainer);
+    timerWrapper.appendChild(timerText);
     
     // Stopka z flagą i godłem
     var footer = document.createElement('div');
@@ -165,10 +233,10 @@ function createQRModal(qrData, codeNumber) {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-top: auto;
-        padding-top: 15px;
-        border-top: 1px solid #eee;
         width: 100%;
+        max-width: 400px;
+        margin-top: auto;
+        padding: 20px 0;
     `;
     
     // Flaga Polski (po lewej)
@@ -177,7 +245,7 @@ function createQRModal(qrData, codeNumber) {
     flagImg.draggable = false;
     flagImg.alt = 'Flaga Polski';
     flagImg.style.cssText = `
-        width: 50px;
+        width: 60px;
         height: auto;
         object-fit: contain;
     `;
@@ -188,7 +256,7 @@ function createQRModal(qrData, codeNumber) {
     eagleImg.draggable = false;
     eagleImg.alt = 'Godło Polski';
     eagleImg.style.cssText = `
-        width: 35px;
+        width: 45px;
         height: auto;
         object-fit: contain;
     `;
@@ -196,70 +264,48 @@ function createQRModal(qrData, codeNumber) {
     footer.appendChild(flagImg);
     footer.appendChild(eagleImg);
     
-    // Przycisk zamknij
-    var closeBtn = document.createElement('button');
-    closeBtn.textContent = 'Zamknij';
-    closeBtn.style.cssText = `
-        background-color: var(--text);
-        color: white;
-        border: none;
-        border-radius: 25px;
-        padding: 12px 30px;
-        font-size: 16px;
-        font-weight: 600;
-        margin-top: 20px;
-        cursor: pointer;
-        width: 100%;
-    `;
-    closeBtn.addEventListener('click', () => {
-        if (modal.timerInterval) {
-            clearInterval(modal.timerInterval);
-        }
-        modal.remove();
-    });
-    
     // Uruchom timer (3 minuty = 180 sekund)
     var timeLeft = 180; // 3 minuty w sekundach
+    var totalTime = 180;
     modal.timerInterval = setInterval(function() {
         timeLeft--;
+        var progress = (timeLeft / totalTime);
+        progressBar.style.transform = 'scaleX(' + progress + ')';
+        
         if (timeLeft <= 0) {
             clearInterval(modal.timerInterval);
-            timerDisplay.textContent = '0:00';
-            timerContainer.style.backgroundColor = '#f8d7da';
-            timerContainer.style.borderColor = '#dc3545';
-            timerLabel.textContent = 'Kod wygasł';
-            timerLabel.style.color = '#721c24';
-            timerDisplay.style.color = '#721c24';
-            // Opcjonalnie: zamknij modal automatycznie
-            // setTimeout(() => modal.remove(), 2000);
+            timerText.textContent = 'Kod wygasł';
+            timerText.style.color = '#ff4444';
+            progressBar.style.backgroundColor = '#ff4444';
         } else {
             var minutes = Math.floor(timeLeft / 60);
             var seconds = timeLeft % 60;
-            timerDisplay.textContent = minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            timerText.textContent = 'Kod wygaśnie za: ' + minutes + ' min ' + seconds + ' sek.';
         }
     }, 1000);
     
-    // Użyj biblioteki QRCode do generowania kodu QR
+    // Użyj biblioteki QRCode do generowania kodu QR - większy rozmiar, jak na obrazku
     QRCode.toCanvas(qrData, {
-        width: 230,
+        width: 260,
         margin: 2,
         color: {
             dark: '#000000',
             light: '#FFFFFF'
-        }
+        },
+        errorCorrectionLevel: 'M'
     }, function (err, canvas) {
         if (err) {
             console.error(err);
             // Fallback - wyświetl prosty wzór QR
             qrContainer.innerHTML = `
-                <div style="font-size: 12px; color: #999; padding: 20px;">
+                <div style="font-size: 12px; color: #999; padding: 20px; text-align: center;">
                     <div style="font-size: 24px; margin-bottom: 10px;">📱</div>
                     <div>Kod QR</div>
-                    <div style="margin-top: 10px; font-weight: 600; color: var(--text);">${codeNumber}</div>
                 </div>
             `;
         } else {
             qrContainer.innerHTML = '';
+            canvas.style.cssText = 'width: 100%; height: 100%; object-fit: contain;';
             qrContainer.appendChild(canvas);
         }
     });
@@ -268,19 +314,11 @@ function createQRModal(qrData, codeNumber) {
     modalContent.appendChild(title);
     modalContent.appendChild(instructionText);
     modalContent.appendChild(qrContainer);
-    modalContent.appendChild(timerContainer);
+    modalContent.appendChild(codeDisplay);
+    modalContent.appendChild(timerWrapper);
     modalContent.appendChild(footer);
-    modalContent.appendChild(closeBtn);
+    
+    modal.appendChild(header);
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
-    
-    // Zamknij po kliknięciu w tło
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            if (modal.timerInterval) {
-                clearInterval(modal.timerInterval);
-            }
-            modal.remove();
-        }
-    });
 }
