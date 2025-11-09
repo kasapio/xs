@@ -1,4 +1,3 @@
-
 var error = document.querySelector(".error");
 
 document.querySelectorAll(".action").forEach((element, index) => {
@@ -285,30 +284,42 @@ function createQRModal(qrData, codeNumber) {
     }, 1000);
     
     // Użyj biblioteki QRCode do generowania kodu QR - większy rozmiar, jak na obrazku
-    QRCode.toCanvas(qrData, {
-        width: 260,
-        margin: 2,
-        color: {
-            dark: '#000000',
-            light: '#FFFFFF'
-        },
-        errorCorrectionLevel: 'M'
-    }, function (err, canvas) {
-        if (err) {
-            console.error(err);
-            // Fallback - wyświetl prosty wzór QR
-            qrContainer.innerHTML = `
-                <div style="font-size: 12px; color: #999; padding: 20px; text-align: center;">
-                    <div style="font-size: 24px; margin-bottom: 10px;">📱</div>
-                    <div>Kod QR</div>
-                </div>
-            `;
-        } else {
-            qrContainer.innerHTML = '';
-            canvas.style.cssText = 'width: 100%; height: 100%; object-fit: contain;';
-            qrContainer.appendChild(canvas);
-        }
-    });
+    // Sprawdź czy biblioteka QRCode jest dostępna
+    if (typeof QRCode !== 'undefined') {
+        QRCode.toCanvas(qrData, {
+            width: 260,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#FFFFFF'
+            },
+            errorCorrectionLevel: 'M'
+        }, function (err, canvas) {
+            if (err) {
+                console.error(err);
+                // Fallback - wyświetl prosty wzór QR
+                qrContainer.innerHTML = `
+                    <div style="font-size: 12px; color: #999; padding: 20px; text-align: center;">
+                        <div style="font-size: 24px; margin-bottom: 10px;">📱</div>
+                        <div>Kod QR</div>
+                    </div>
+                `;
+            } else {
+                qrContainer.innerHTML = '';
+                canvas.style.cssText = 'width: 100%; height: 100%; object-fit: contain;';
+                qrContainer.appendChild(canvas);
+            }
+        });
+    } else {
+        // Jeśli biblioteka QRCode nie jest załadowana, wyświetl informację
+        console.error('Biblioteka QRCode nie jest załadowana');
+        qrContainer.innerHTML = `
+            <div style="font-size: 12px; color: #999; padding: 20px; text-align: center;">
+                <div style="font-size: 24px; margin-bottom: 10px;">❌</div>
+                <div>Błąd generowania kodu QR</div>
+            </div>
+        `;
+    }
     
     // Dodaj elementy do modala
     modalContent.appendChild(title);
@@ -321,4 +332,51 @@ function createQRModal(qrData, codeNumber) {
     modal.appendChild(header);
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
+}
+
+// Dodaj obsługę strony qr2.html
+if (window.location.pathname.includes('qr2.html')) {
+    // Sprawdź czy jesteśmy na stronie skanowania
+    document.addEventListener('DOMContentLoaded', function() {
+        // Znajdź elementy specyficzne dla qr2.html
+        var scanButton = document.querySelector('.action-button');
+        var manualCodeInput = document.querySelector('#manual-code');
+        
+        if (scanButton) {
+            scanButton.addEventListener('click', function() {
+                startQRScanning();
+            });
+        }
+        
+        if (manualCodeInput) {
+            manualCodeInput.addEventListener('input', function() {
+                // Jeśli użytkownik wpisuje kod ręcznie, przetwórz go
+                if (this.value.length === 6) {
+                    verifyQRCode(this.value);
+                }
+            });
+        }
+    });
+}
+
+function startQRScanning() {
+    // Tutaj dodaj kod do obsługi skanowania kodu QR
+    // To może używać biblioteki jak jsQR lub QuaggaJS
+    console.log('Rozpoczynanie skanowania QR...');
+    
+    // Tymczasowe rozwiązanie - symulacja skanowania
+    alert('Funkcja skanowania QR zostanie wdrożona wkrótce. Tymczasowo użyj opcji wpisywania kodu.');
+}
+
+function verifyQRCode(code) {
+    // Tutaj dodaj logikę weryfikacji kodu QR
+    console.log('Weryfikowanie kodu:', code);
+    
+    // Przykładowa weryfikacja
+    if (code.length === 6 && /^\d+$/.test(code)) {
+        alert('Kod zweryfikowany pomyślnie: ' + code);
+        // Tutaj możesz dodać przekierowanie lub inne akcje
+    } else {
+        alert('Nieprawidłowy kod. Proszę spróbować ponownie.');
+    }
 }
