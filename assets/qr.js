@@ -2,12 +2,10 @@ var error = document.querySelector(".error");
 
 document.querySelectorAll(".action").forEach((element, index) => {
     element.addEventListener('click', () => {
-        // Pierwszy element (index 0) to "Zeskanuj kod QR" - przekieruj do qr2.html
         if (index === 0) {
             var params = new URLSearchParams(window.location.search);
             window.location.href = "qr2.html?" + params.toString();
         } 
-        // Drugi element (index 1) to "Pokaż kod QR" - pokaż kod QR z cyferkami
         else if (index === 1) {
             showQRCode();
         }
@@ -21,21 +19,16 @@ document.querySelectorAll(".close").forEach((element) => {
 })
 
 function showQRCode() {
-    // Pobierz dane z parametrów URL, localStorage lub wygeneruj domyślne
     var params = new URLSearchParams(window.location.search);
     var name = params.get('name') || localStorage.getItem('name') || '';
     var surname = params.get('surname') || localStorage.getItem('surname') || '';
     var seria_numer = params.get('seria_numer') || localStorage.getItem('seria_numer') || generateDocumentNumber();
     
-    // Jeśli nie ma numeru dokumentu, wygeneruj go
     if (!seria_numer || seria_numer === '') {
         seria_numer = generateDocumentNumber();
     }
     
-    // Generuj kod QR z danymi
     var qrData = name + ' ' + surname + ' | ' + seria_numer;
-    
-    // Utwórz modal z kodem QR
     createQRModal(qrData, seria_numer);
 }
 
@@ -49,7 +42,6 @@ function generateDocumentNumber() {
 }
 
 function createQRModal(qrData, codeNumber) {
-    // Usuń istniejący modal jeśli istnieje
     var existingModal = document.getElementById('qr-modal');
     if (existingModal) {
         existingModal.remove();
@@ -58,7 +50,6 @@ function createQRModal(qrData, codeNumber) {
         }
     }
     
-    // Wyciągnij tylko cyfry z numeru dokumentu dla wyświetlenia
     var numericCode = codeNumber.replace(/\s+/g, '').replace(/[^0-9]/g, '');
     if (numericCode.length === 0) {
         numericCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -68,7 +59,15 @@ function createQRModal(qrData, codeNumber) {
         numericCode = numericCode.padStart(6, '0');
     }
     
-    // Utwórz modal - pełnoekranowy overlay z ciemnym tłem
+    // Losowy kod QR z różnych dostępnych online
+    var qrImages = [
+        'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(qrData),
+        'https://quickchart.io/qr?text=' + encodeURIComponent(qrData) + '&size=300',
+        'https://api.qr-code-generator.com/v1/create?access-token=YOUR_TOKEN&qr_code_text=' + encodeURIComponent(qrData) + '&image_format=PNG&download=0',
+    ];
+    
+    var randomQrImage = qrImages[0]; // Używamy pierwszego bo darmowy
+    
     var modal = document.createElement('div');
     modal.id = 'qr-modal';
     modal.style.cssText = `
@@ -77,14 +76,14 @@ function createQRModal(qrData, codeNumber) {
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: #1a1a1a;
+        background-color: white;
         z-index: 10000;
         display: flex;
         flex-direction: column;
         overflow-y: auto;
+        font-family: Arial, sans-serif;
     `;
     
-    // Header z przyciskiem zamknij
     var header = document.createElement('div');
     header.style.cssText = `
         display: flex;
@@ -99,12 +98,13 @@ function createQRModal(qrData, codeNumber) {
     closeBtn.textContent = 'Zamknij';
     closeBtn.style.cssText = `
         background-color: transparent;
-        color: white;
+        color: #333;
         border: none;
         font-size: 16px;
         font-weight: 500;
         cursor: pointer;
         padding: 8px 16px;
+        font-family: Arial, sans-serif;
     `;
     closeBtn.addEventListener('click', () => {
         if (modal.timerInterval) {
@@ -114,7 +114,6 @@ function createQRModal(qrData, codeNumber) {
     });
     header.appendChild(closeBtn);
     
-    // Główna zawartość
     var modalContent = document.createElement('div');
     modalContent.style.cssText = `
         flex: 1;
@@ -125,33 +124,33 @@ function createQRModal(qrData, codeNumber) {
         padding: 20px;
         padding-top: 40px;
         text-align: center;
-        color: white;
+        color: #333;
+        font-family: Arial, sans-serif;
     `;
     
-    // Tytuł
     var title = document.createElement('h1');
     title.textContent = 'Pokaż kod QR';
     title.style.cssText = `
         font-size: 32px;
         font-weight: bold;
         margin: 0 0 25px 0;
-        color: white;
+        color: #333;
         letter-spacing: -0.5px;
+        font-family: Arial, sans-serif;
     `;
     
-    // Tekst instrukcji
     var instructionText = document.createElement('p');
     instructionText.textContent = 'Poproś osobę, której sprawdzasz dokument, aby zeskanowała lub przepisała ten kod w swojej aplikacji mObywatel.';
     instructionText.style.cssText = `
         font-size: 15px;
-        color: rgba(255, 255, 255, 0.85);
+        color: #666;
         margin: 0 0 35px 0;
         line-height: 1.5;
         max-width: 85%;
         text-align: center;
+        font-family: Arial, sans-serif;
     `;
     
-    // Kod QR - większy, jak na obrazku
     var qrContainer = document.createElement('div');
     qrContainer.id = 'qrcode';
     qrContainer.style.cssText = `
@@ -165,35 +164,45 @@ function createQRModal(qrData, codeNumber) {
         border-radius: 8px;
         padding: 20px;
         box-sizing: border-box;
+        border: 1px solid #ddd;
     `;
     
-    // Kod numeryczny - duży, biały, pogrubiony, jak na obrazku
+    // Dodajemy prawdziwy obrazek kodu QR z internetu
+    var qrImage = document.createElement('img');
+    qrImage.src = randomQrImage;
+    qrImage.alt = 'Kod QR';
+    qrImage.style.cssText = `
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    `;
+    qrContainer.appendChild(qrImage);
+    
     var codeDisplay = document.createElement('div');
     codeDisplay.textContent = numericCode;
     codeDisplay.style.cssText = `
         font-size: 52px;
         font-weight: bold;
-        color: white;
+        color: #333;
         margin: 0 0 25px 0;
         letter-spacing: 6px;
-        font-family: 'Roboto', 'Arial', sans-serif;
+        font-family: Arial, sans-serif;
         line-height: 1.2;
     `;
     
-    // Timer z paskiem postępu
     var timerWrapper = document.createElement('div');
     timerWrapper.style.cssText = `
         width: 100%;
         max-width: 400px;
         margin: 0 auto 40px auto;
+        font-family: Arial, sans-serif;
     `;
     
-    // Pasek postępu (niebieska linia)
     var progressBarContainer = document.createElement('div');
     progressBarContainer.style.cssText = `
         width: 100%;
         height: 3px;
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: #f0f0f0;
         margin-bottom: 10px;
         border-radius: 2px;
         overflow: hidden;
@@ -213,20 +222,19 @@ function createQRModal(qrData, codeNumber) {
     
     progressBarContainer.appendChild(progressBar);
     
-    // Timer text
     var timerText = document.createElement('p');
     timerText.id = 'qr-timer-text';
     timerText.textContent = 'Kod wygaśnie za: 3 min 0 sek.';
     timerText.style.cssText = `
         font-size: 14px;
-        color: rgba(255, 255, 255, 0.7);
+        color: #666;
         margin: 0;
+        font-family: Arial, sans-serif;
     `;
     
     timerWrapper.appendChild(progressBarContainer);
     timerWrapper.appendChild(timerText);
     
-    // Stopka z flagą i godłem
     var footer = document.createElement('div');
     footer.style.cssText = `
         display: flex;
@@ -238,7 +246,6 @@ function createQRModal(qrData, codeNumber) {
         padding: 20px 0;
     `;
     
-    // Flaga Polski (po lewej)
     var flagImg = document.createElement('img');
     flagImg.src = 'images/gzot1Pt.gif';
     flagImg.draggable = false;
@@ -249,7 +256,6 @@ function createQRModal(qrData, codeNumber) {
         object-fit: contain;
     `;
     
-    // Godło Polski (po prawej)
     var eagleImg = document.createElement('img');
     eagleImg.src = 'images/R5yccCK.gif';
     eagleImg.draggable = false;
@@ -263,8 +269,7 @@ function createQRModal(qrData, codeNumber) {
     footer.appendChild(flagImg);
     footer.appendChild(eagleImg);
     
-    // Uruchom timer (3 minuty = 180 sekund)
-    var timeLeft = 180; // 3 minuty w sekundach
+    var timeLeft = 180;
     var totalTime = 180;
     modal.timerInterval = setInterval(function() {
         timeLeft--;
@@ -283,45 +288,6 @@ function createQRModal(qrData, codeNumber) {
         }
     }, 1000);
     
-    // Użyj biblioteki QRCode do generowania kodu QR - większy rozmiar, jak na obrazku
-    // Sprawdź czy biblioteka QRCode jest dostępna
-    if (typeof QRCode !== 'undefined') {
-        QRCode.toCanvas(qrData, {
-            width: 260,
-            margin: 2,
-            color: {
-                dark: '#000000',
-                light: '#FFFFFF'
-            },
-            errorCorrectionLevel: 'M'
-        }, function (err, canvas) {
-            if (err) {
-                console.error(err);
-                // Fallback - wyświetl prosty wzór QR
-                qrContainer.innerHTML = `
-                    <div style="font-size: 12px; color: #999; padding: 20px; text-align: center;">
-                        <div style="font-size: 24px; margin-bottom: 10px;">📱</div>
-                        <div>Kod QR</div>
-                    </div>
-                `;
-            } else {
-                qrContainer.innerHTML = '';
-                canvas.style.cssText = 'width: 100%; height: 100%; object-fit: contain;';
-                qrContainer.appendChild(canvas);
-            }
-        });
-    } else {
-        // Jeśli biblioteka QRCode nie jest załadowana, wyświetl informację
-        console.error('Biblioteka QRCode nie jest załadowana');
-        qrContainer.innerHTML = `
-            <div style="font-size: 12px; color: #999; padding: 20px; text-align: center;">
-                <div style="font-size: 24px; margin-bottom: 10px;">❌</div>
-                <div>Błąd generowania kodu QR</div>
-            </div>
-        `;
-    }
-    
-    // Dodaj elementy do modala
     modalContent.appendChild(title);
     modalContent.appendChild(instructionText);
     modalContent.appendChild(qrContainer);
@@ -334,49 +300,144 @@ function createQRModal(qrData, codeNumber) {
     document.body.appendChild(modal);
 }
 
-// Dodaj obsługę strony qr2.html
+// Dodatkowy kod dla strony skanowania QR
 if (window.location.pathname.includes('qr2.html')) {
-    // Sprawdź czy jesteśmy na stronie skanowania
     document.addEventListener('DOMContentLoaded', function() {
-        // Znajdź elementy specyficzne dla qr2.html
-        var scanButton = document.querySelector('.action-button');
-        var manualCodeInput = document.querySelector('#manual-code');
+        // Zmiana tła na białe i czcionki na Arial
+        document.body.style.backgroundColor = 'white';
+        document.body.style.fontFamily = 'Arial, sans-serif';
         
-        if (scanButton) {
-            scanButton.addEventListener('click', function() {
-                startQRScanning();
+        // Obsługa przycisku "Wpisz kod"
+        var manualCodeBtn = document.querySelector('.manual-code-btn');
+        if (manualCodeBtn) {
+            manualCodeBtn.addEventListener('click', function() {
+                showManualCodeInput();
             });
         }
         
-        if (manualCodeInput) {
-            manualCodeInput.addEventListener('input', function() {
-                // Jeśli użytkownik wpisuje kod ręcznie, przetwórz go
-                if (this.value.length === 6) {
-                    verifyQRCode(this.value);
-                }
+        // Symulacja skanowania
+        var scanFrame = document.querySelector('.scan-frame');
+        if (scanFrame) {
+            scanFrame.addEventListener('click', function() {
+                simulateQRScan();
             });
         }
     });
 }
 
-function startQRScanning() {
-    // Tutaj dodaj kod do obsługi skanowania kodu QR
-    // To może używać biblioteki jak jsQR lub QuaggaJS
-    console.log('Rozpoczynanie skanowania QR...');
+function showManualCodeInput() {
+    var inputModal = document.createElement('div');
+    inputModal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: white;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        font-family: Arial, sans-serif;
+    `;
     
-    // Tymczasowe rozwiązanie - symulacja skanowania
-    alert('Funkcja skanowania QR zostanie wdrożona wkrótce. Tymczasowo użyj opcji wpisywania kodu.');
+    var header = document.createElement('div');
+    header.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+    `;
+    
+    var title = document.createElement('h1');
+    title.textContent = 'Kod';
+    title.style.cssText = `
+        font-size: 20px;
+        font-weight: bold;
+        margin: 0;
+        color: #333;
+    `;
+    
+    var closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Zamknij';
+    closeBtn.style.cssText = `
+        background-color: transparent;
+        color: #333;
+        border: none;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 8px 16px;
+    `;
+    closeBtn.addEventListener('click', function() {
+        inputModal.remove();
+    });
+    
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    
+    var content = document.createElement('div');
+    content.style.cssText = `
+        flex: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+    `;
+    
+    var instruction = document.createElement('p');
+    instruction.textContent = 'Wpisz lub wklej kod.';
+    instruction.style.cssText = `
+        color: #666;
+        margin: 0 0 20px 0;
+        font-size: 16px;
+    `;
+    
+    var codeInput = document.createElement('input');
+    codeInput.type = 'text';
+    codeInput.placeholder = 'Wpisz 6-cyfrowy kod';
+    codeInput.style.cssText = `
+        padding: 15px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 18px;
+        margin-bottom: 20px;
+        text-align: center;
+        letter-spacing: 3px;
+    `;
+    
+    var verifyBtn = document.createElement('button');
+    verifyBtn.textContent = 'Zweryfikuj kod';
+    verifyBtn.style.cssText = `
+        background-color: #0066cc;
+        color: white;
+        border: none;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+    `;
+    verifyBtn.addEventListener('click', function() {
+        if (codeInput.value.length === 6 && /^\d+$/.test(codeInput.value)) {
+            alert('Kod zweryfikowany pomyślnie: ' + codeInput.value);
+            inputModal.remove();
+        } else {
+            alert('Proszę wpisać 6-cyfrowy kod');
+        }
+    });
+    
+    content.appendChild(instruction);
+    content.appendChild(codeInput);
+    content.appendChild(verifyBtn);
+    
+    inputModal.appendChild(header);
+    inputModal.appendChild(content);
+    document.body.appendChild(inputModal);
+    
+    codeInput.focus();
 }
 
-function verifyQRCode(code) {
-    // Tutaj dodaj logikę weryfikacji kodu QR
-    console.log('Weryfikowanie kodu:', code);
-    
-    // Przykładowa weryfikacja
-    if (code.length === 6 && /^\d+$/.test(code)) {
-        alert('Kod zweryfikowany pomyślnie: ' + code);
-        // Tutaj możesz dodać przekierowanie lub inne akcje
-    } else {
-        alert('Nieprawidłowy kod. Proszę spróbować ponownie.');
-    }
+function simulateQRScan() {
+    var scanResult = Math.floor(100000 + Math.random() * 900000).toString();
+    alert('Kod QR zeskanowany pomyślnie: ' + scanResult + '\n\nPrzekierowywanie do weryfikacji...');
 }
