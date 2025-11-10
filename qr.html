@@ -93,6 +93,23 @@
             transform-origin: left;
             transition: transform 1s linear;
         }
+        
+        .expired-message {
+            color: #ff4444;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .regenerate-btn {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -177,22 +194,37 @@
         })
 
         function showQRCode() {
-            var params = new URLSearchParams(window.location.search);
-            var name = params.get('name') || localStorage.getItem('name') || '';
-            var surname = params.get('surname') || localStorage.getItem('surname') || '';
-            
-            // Generuj zawsze nowy 6-cyfrowy kod
+            // Za każdym razem generuj całkowicie nowe dane
+            var firstName = generateRandomName();
+            var lastName = generateRandomName();
             var numericCode = generateRandomCode();
             
-            var qrData = name + ' ' + surname + ' | ' + numericCode;
-            createQRModal(qrData, numericCode);
+            // Generuj losowy numer dokumentu
+            var documentNumber = generateDocumentNumber();
+            
+            var qrData = `VERIFY|${firstName}|${lastName}|${documentNumber}|${numericCode}|${Date.now()}`;
+            createQRModal(qrData, numericCode, firstName, lastName);
         }
 
         function generateRandomCode() {
             return Math.floor(100000 + Math.random() * 900000).toString();
         }
+        
+        function generateRandomName() {
+            const names = ['Anna', 'Jan', 'Maria', 'Piotr', 'Katarzyna', 'Andrzej', 'Malgorzata', 'Tomasz', 'Agnieszka', 'Pawel'];
+            return names[Math.floor(Math.random() * names.length)];
+        }
+        
+        function generateDocumentNumber() {
+            const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const letter1 = letters[Math.floor(Math.random() * letters.length)];
+            const letter2 = letters[Math.floor(Math.random() * letters.length)];
+            const letter3 = letters[Math.floor(Math.random() * letters.length)];
+            const numbers = Math.floor(100000 + Math.random() * 900000);
+            return `${letter1}${letter2}${letter3}${numbers}`;
+        }
 
-        function createQRModal(qrData, numericCode) {
+        function createQRModal(qrData, numericCode, firstName, lastName) {
             var existingModal = document.getElementById('qr-modal');
             if (existingModal) {
                 existingModal.remove();
@@ -222,6 +254,10 @@
                         </div>
                         <p id="timer-text">Kod wygaśnie za: 3 min 0 sek.</p>
                     </div>
+                    <div id="expired-section" style="display: none;">
+                        <p class="expired-message">Kod wygasł!</p>
+                        <button class="regenerate-btn" id="regenerate-btn">Wygeneruj nowy kod</button>
+                    </div>
                 </div>
             `;
             
@@ -248,6 +284,7 @@
             var timeLeft = 180;
             var progressBar = document.getElementById('qr-progress');
             var timerText = document.getElementById('timer-text');
+            var expiredSection = document.getElementById('expired-section');
             
             modal.timerInterval = setInterval(function() {
                 timeLeft--;
@@ -256,8 +293,8 @@
                 
                 if (timeLeft <= 0) {
                     clearInterval(modal.timerInterval);
-                    timerText.textContent = 'Kod wygasł';
-                    timerText.style.color = '#ff4444';
+                    timerText.style.display = 'none';
+                    expiredSection.style.display = 'block';
                     progressBar.style.backgroundColor = '#ff4444';
                 } else {
                     var minutes = Math.floor(timeLeft / 60);
@@ -272,6 +309,15 @@
                     clearInterval(modal.timerInterval);
                 }
                 modal.remove();
+            });
+            
+            // Przycisk do generowania nowego kodu
+            document.getElementById('regenerate-btn').addEventListener('click', function() {
+                if (modal.timerInterval) {
+                    clearInterval(modal.timerInterval);
+                }
+                modal.remove();
+                showQRCode(); // Generuj nowy kod
             });
         }
     </script>
