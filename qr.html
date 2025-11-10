@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="pl">
 <head>
     <title>mObywatel</title>
     <meta charset="UTF-8">
@@ -10,6 +12,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
     <meta name="mobile-web-app-capable" content="yes">
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        /* Dodatkowe style dla modala kodu QR */
+        #qr-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: flex-end;
+            padding: 15px 20px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .modal-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .qr-code-container {
+            width: 300px;
+            height: 300px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .qr-number {
+            font-size: 48px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            margin: 20px 0;
+            color: #333;
+        }
+        
+        .qr-timer {
+            margin: 20px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .progress-bar {
+            width: 300px;
+            height: 4px;
+            background: #f0f0f0;
+            border-radius: 2px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: #0066cc;
+            width: 100%;
+            transform-origin: left;
+            transition: transform 1s linear;
+        }
+    </style>
 </head>
 <body>
 
@@ -71,6 +155,126 @@
     </div>
 
     <script src="assets/bar.js?v=2.0"></script>
-    <script src="assets/qr.js"></script>
+    <script>
+        var error = document.querySelector(".error");
+
+        document.querySelectorAll(".action").forEach((element, index) => {
+            element.addEventListener('click', () => {
+                if (index === 0) {
+                    var params = new URLSearchParams(window.location.search);
+                    window.location.href = "qr2.html?" + params.toString();
+                } 
+                else if (index === 1) {
+                    showQRCode();
+                }
+            });
+        });
+
+        document.querySelectorAll(".close").forEach((element) => {
+            element.addEventListener('click', () => {
+                error.classList.remove("error_open");
+            })
+        })
+
+        function showQRCode() {
+            var params = new URLSearchParams(window.location.search);
+            var name = params.get('name') || localStorage.getItem('name') || '';
+            var surname = params.get('surname') || localStorage.getItem('surname') || '';
+            
+            // Generuj zawsze nowy 6-cyfrowy kod
+            var numericCode = generateRandomCode();
+            
+            var qrData = name + ' ' + surname + ' | ' + numericCode;
+            createQRModal(qrData, numericCode);
+        }
+
+        function generateRandomCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        function createQRModal(qrData, numericCode) {
+            var existingModal = document.getElementById('qr-modal');
+            if (existingModal) {
+                existingModal.remove();
+                if (existingModal.timerInterval) {
+                    clearInterval(existingModal.timerInterval);
+                }
+            }
+            
+            var modal = document.createElement('div');
+            modal.id = 'qr-modal';
+            modal.innerHTML = `
+                <div class="modal-header">
+                    <button class="modal-close">Zamknij</button>
+                </div>
+                <div class="modal-content">
+                    <h1 style="font-size: 24px; margin-bottom: 15px; color: #333;">Pokaż kod QR</h1>
+                    <p style="color: #666; margin-bottom: 30px; max-width: 80%; line-height: 1.4;">
+                        Poproś osobę, której sprawdzasz dokument, aby zeskanowała lub przepisała ten kod w swojej aplikacji mObywatel.
+                    </p>
+                    <div class="qr-code-container" id="qr-code-container">
+                        <canvas id="qr-canvas"></canvas>
+                    </div>
+                    <div class="qr-number">${numericCode}</div>
+                    <div class="qr-timer">
+                        <div class="progress-bar">
+                            <div class="progress" id="qr-progress"></div>
+                        </div>
+                        <p id="timer-text">Kod wygaśnie za: 3 min 0 sek.</p>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Generuj kod QR
+            QRCode.toCanvas(document.getElementById('qr-canvas'), qrData, {
+                width: 260,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                },
+                errorCorrectionLevel: 'M'
+            }, function (err) {
+                if (err) {
+                    console.error(err);
+                    document.getElementById('qr-code-container').innerHTML = 
+                        '<div style="color: #999; text-align: center;">Błąd generowania kodu QR</div>';
+                }
+            });
+            
+            // Timer
+            var timeLeft = 180;
+            var progressBar = document.getElementById('qr-progress');
+            var timerText = document.getElementById('timer-text');
+            
+            modal.timerInterval = setInterval(function() {
+                timeLeft--;
+                var progress = (timeLeft / 180);
+                progressBar.style.transform = 'scaleX(' + progress + ')';
+                
+                if (timeLeft <= 0) {
+                    clearInterval(modal.timerInterval);
+                    timerText.textContent = 'Kod wygasł';
+                    timerText.style.color = '#ff4444';
+                    progressBar.style.backgroundColor = '#ff4444';
+                } else {
+                    var minutes = Math.floor(timeLeft / 60);
+                    var seconds = timeLeft % 60;
+                    timerText.textContent = 'Kod wygaśnie za: ' + minutes + ' min ' + seconds + ' sek.';
+                }
+            }, 1000);
+            
+            // Zamknięcie modala
+            document.querySelector('.modal-close').addEventListener('click', function() {
+                if (modal.timerInterval) {
+                    clearInterval(modal.timerInterval);
+                }
+                modal.remove();
+            });
+        }
+    </script>
     <script src="assets/manifest.js"></script>
 </body>
+</html>
