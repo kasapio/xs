@@ -61,6 +61,7 @@
             align-items: center;
             justify-content: center;
             margin: 20px 0;
+            overflow: hidden;
         }
         
         .qr-number {
@@ -75,10 +76,11 @@
             margin: 20px 0;
             font-size: 14px;
             color: #666;
+            width: 300px;
         }
         
         .progress-bar {
-            width: 300px;
+            width: 100%;
             height: 4px;
             background: #f0f0f0;
             border-radius: 2px;
@@ -109,6 +111,11 @@
             font-size: 16px;
             cursor: pointer;
             margin-top: 10px;
+        }
+        
+        #qr-canvas {
+            max-width: 100%;
+            max-height: 100%;
         }
     </style>
 </head>
@@ -264,27 +271,43 @@
             document.body.appendChild(modal);
             
             // Generuj kod QR
-            QRCode.toCanvas(document.getElementById('qr-canvas'), qrData, {
-                width: 260,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#FFFFFF'
-                },
-                errorCorrectionLevel: 'M'
-            }, function (err) {
-                if (err) {
-                    console.error(err);
-                    document.getElementById('qr-code-container').innerHTML = 
-                        '<div style="color: #999; text-align: center;">Błąd generowania kodu QR</div>';
-                }
-            });
+            try {
+                QRCode.toCanvas(document.getElementById('qr-canvas'), qrData, {
+                    width: 280,
+                    margin: 1,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    },
+                    errorCorrectionLevel: 'M'
+                }, function (err) {
+                    if (err) {
+                        console.error('Błąd generowania kodu QR:', err);
+                        // Fallback - wyświetl prosty kod QR jako obrazek
+                        document.getElementById('qr-code-container').innerHTML = 
+                            `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                                <div style="font-size: 18px; margin-bottom: 10px;">Kod QR</div>
+                                <div style="font-size: 24px; font-weight: bold;">${numericCode}</div>
+                                <div style="font-size: 12px; color: #999; margin-top: 10px;">(symulacja kodu QR)</div>
+                            </div>`;
+                    }
+                });
+            } catch (error) {
+                console.error('Błąd w generowaniu kodu QR:', error);
+                document.getElementById('qr-code-container').innerHTML = 
+                    `<div style="color: #999; text-align: center; display: flex; align-items: center; justify-content: center; height: 100%;">
+                        Błąd generowania kodu QR
+                    </div>`;
+            }
             
             // Timer
             var timeLeft = 180;
             var progressBar = document.getElementById('qr-progress');
             var timerText = document.getElementById('timer-text');
             var expiredSection = document.getElementById('expired-section');
+            
+            // Ustaw początkowy stan progress bar
+            progressBar.style.transform = 'scaleX(1)';
             
             modal.timerInterval = setInterval(function() {
                 timeLeft--;
@@ -299,7 +322,9 @@
                 } else {
                     var minutes = Math.floor(timeLeft / 60);
                     var seconds = timeLeft % 60;
-                    timerText.textContent = 'Kod wygaśnie za: ' + minutes + ' min ' + seconds + ' sek.';
+                    // Formatowanie sekund z zerem wiodącym
+                    var secondsFormatted = seconds < 10 ? '0' + seconds : seconds;
+                    timerText.textContent = 'Kod wygaśnie za: ' + minutes + ' min ' + secondsFormatted + ' sek.';
                 }
             }, 1000);
             
