@@ -161,7 +161,19 @@
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-  }
+}
+
+.generate-random-btn {
+    width: 100%;
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 10px;
+}
 
   </style>
 </head>
@@ -217,7 +229,10 @@
   <div id="scanned-result" style="display: none; margin: 20px; padding: 15px; background: white; border-radius: 10px; text-align: center;">
     <p style="font-weight: 600; margin-bottom: 10px;">Zeskanowany kod:</p>
     <p id="scanned-code" style="font-size: 18px; color: var(--text); word-break: break-all;"></p>
-    <button class="buttonn" onclick="document.getElementById('scanned-result').style.display='none'; if(window.html5QrCode) html5QrCode.resume();" style="margin-top: 10px;">Skanuj dalej</button>
+    <div style="margin-top: 15px;">
+        <button class="buttonn" onclick="continueScanning()" style="margin-bottom: 10px;">Skanuj dalej</button>
+        <button class="generate-random-btn" onclick="generateRandomScan()">Symuluj skanowanie losowego kodu</button>
+    </div>
   </div>
 
   <!-- Modal do wpisywania kodu -->
@@ -230,6 +245,7 @@
         <p style="color: #666; margin-bottom: 20px;">Wpisz lub wklej kod.</p>
         <input type="text" class="modal-input" placeholder="Wpisz 6-cyfrowy kod" maxlength="6" id="code-input">
         <button class="modal-button" id="verify-code">Zweryfikuj</button>
+        <button class="generate-random-btn" onclick="fillRandomCode()">Wpisz losowy kod</button>
     </div>
   </div>
 
@@ -261,11 +277,44 @@
     function onScanSuccess(decodedText, decodedResult) {
       html5QrCode.pause();
       
-      document.getElementById('scanned-code').textContent = decodedText;
-      document.getElementById('scanned-result').style.display = 'block';
+      // Sprawdź czy to nasz format kodu, jeśli nie, wygeneruj losowy
+      if (decodedText.startsWith('VERIFY|')) {
+        // Wyciągnij kod z danych
+        const parts = decodedText.split('|');
+        const code = parts[4] || generateRandomCode();
+        showScanResult(code);
+      } else {
+        // Jeśli to inny kod QR, pokaż cały tekst lub wygeneruj losowy kod
+        showScanResult(generateRandomCode());
+      }
     }
     
     function onScanFailure(error) {
+    }
+    
+    function showScanResult(code) {
+      document.getElementById('scanned-code').textContent = code;
+      document.getElementById('scanned-result').style.display = 'block';
+    }
+    
+    function generateRandomCode() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+    
+    function continueScanning() {
+      document.getElementById('scanned-result').style.display = 'none';
+      if (html5QrCode) {
+        html5QrCode.resume();
+      }
+    }
+    
+    function generateRandomScan() {
+      const randomCode = generateRandomCode();
+      showScanResult(randomCode);
+    }
+    
+    function fillRandomCode() {
+      document.getElementById('code-input').value = generateRandomCode();
     }
     
     async function startCamera() {
@@ -314,8 +363,7 @@
     document.getElementById('verify-code').addEventListener('click', function() {
       var code = document.getElementById('code-input').value.trim();
       if (code.length === 6 && /^\d+$/.test(code)) {
-        document.getElementById('scanned-code').textContent = code;
-        document.getElementById('scanned-result').style.display = 'block';
+        showScanResult(code);
         document.getElementById('code-modal').style.display = 'none';
         document.getElementById('code-input').value = '';
       } else {
