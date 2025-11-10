@@ -15,165 +15,186 @@
   <style>
     .main_wrapper {
       margin-bottom: 0px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px 0;
-}
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px 0;
+    }
+    
     #camera-container {
-  border-radius: 20px;
-  width: 90%;
-  max-width: 550px;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  border: 2px solid none;
-  height: 680px;
-  position: relative;
-}
+      border-radius: 20px;
+      width: 90%;
+      max-width: 550px;
+      aspect-ratio: 16 / 9;
+      overflow: hidden;
+      border: 2px solid none;
+      height: 680px;
+      position: relative;
+    }
+    
     #video {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
+    
     .scan-frame {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 200px;
-  height: 200px;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 200px;
+      height: 200px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
 
-.corner {
-  position: absolute;
-  width: 70px;
-  height: 70px;
-  border: 5px solid white;
-  box-sizing: border-box;
-}
+    .corner {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      border: 5px solid white;
+      box-sizing: border-box;
+    }
 
-.corner.tl {
-  top: 0;
-  left: 0;
-  border-right: none;
-  border-bottom: none;
-  border-top-left-radius: 25px
-}
+    .corner.tl {
+      top: 0;
+      left: 0;
+      border-right: none;
+      border-bottom: none;
+      border-top-left-radius: 25px;
+    }
 
-.corner.tr {
-  top: 0;
-  right: 0;
-  border-left: none;
-  border-bottom: none;
-  border-top-right-radius: 25px
-}
+    .corner.tr {
+      top: 0;
+      right: 0;
+      border-left: none;
+      border-bottom: none;
+      border-top-right-radius: 25px;
+    }
 
-.corner.bl {
-  bottom: 0;
-  left: 0;
-  border-right: none;
-  border-top: none;
-  border-bottom-left-radius: 25px
-}
+    .corner.bl {
+      bottom: 0;
+      left: 0;
+      border-right: none;
+      border-top: none;
+      border-bottom-left-radius: 25px;
+    }
 
-.corner.br {
-  bottom: 0;
-  right: 0;
-  border-left: none;
-  border-top: none;
-  border-bottom-right-radius: 25px
-}
-.buttonn{
-    width: 550;
-    width: 90%;
-    text-align: center;
-    height: 50px;
-    border: 1px solid ;
-    border-radius: 40px;
-    box-shadow: none;
-    background-color: #f5f6fb;
-    color: rgb(6, 71, 146);
-    font-size: 20px;
-    font-family: poppins;
-}
-.przycisk{
-    text-align: center;
-}
+    .corner.br {
+      bottom: 0;
+      right: 0;
+      border-left: none;
+      border-top: none;
+      border-bottom-right-radius: 25px;
+    }
+    
+    .buttonn {
+      width: 90%;
+      max-width: 550px;
+      text-align: center;
+      height: 50px;
+      border: 1px solid;
+      border-radius: 40px;
+      box-shadow: none;
+      background-color: #f5f6fb;
+      color: rgb(6, 71, 146);
+      font-size: 20px;
+      font-family: Arial, sans-serif;
+      margin: 10px auto;
+      display: block;
+    }
+    
+    .przycisk {
+      text-align: center;
+      padding: 0 20px;
+    }
 
-/* Modal dla wpisywania kodu */
-.code-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: white;
-    z-index: 10000;
-    font-family: Arial, sans-serif;
-}
+    /* Modal dla wpisywania kodu */
+    .code-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: white;
+      z-index: 10000;
+      font-family: Arial, sans-serif;
+    }
 
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    border-bottom: 1px solid #eee;
-}
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      border-bottom: 1px solid #eee;
+    }
 
-.modal-title {
-    font-size: 20px;
-    font-weight: bold;
-    color: #333;
-}
+    .modal-title {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+    }
 
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 16px;
-    color: #333;
-    cursor: pointer;
-}
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: #333;
+      cursor: pointer;
+    }
 
-.modal-content {
-    padding: 20px;
-}
+    .modal-content {
+      padding: 20px;
+    }
 
-.modal-input {
-    width: 100%;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 18px;
-    margin-bottom: 20px;
-    text-align: center;
-    letter-spacing: 3px;
-}
+    .modal-input {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 18px;
+      margin-bottom: 20px;
+      text-align: center;
+      letter-spacing: 3px;
+      box-sizing: border-box;
+    }
 
-.modal-button {
-    width: 100%;
-    background-color: #0066cc;
-    color: white;
-    border: none;
-    padding: 15px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-}
+    .modal-button {
+      width: 100%;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
 
-.generate-random-btn {
-    width: 100%;
-    background-color: #f0f0f0;
-    color: #333;
-    border: 1px solid #ddd;
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    margin-top: 10px;
-}
+    .generate-random-btn {
+      width: 100%;
+      background-color: #f0f0f0;
+      color: #333;
+      border: 1px solid #ddd;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+
+    #scanned-result {
+      display: none;
+      margin: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
 
   </style>
 </head>
@@ -211,41 +232,44 @@
       </div>
     </div>
   </div>
+  
   <p style="margin-top: 70px; margin-left: 30px; margin-bottom: 0px; font-size: 14px;">Umieść kod QR w ramce, aby go zeskanować.</p>
+  
   <div class="main_wrapper" style="margin-top: 0px;">
-  <div id="camera-container" style="position: relative;">
-    <div class="scan-frame" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; pointer-events: none;">
-      <div class="corner tl"></div>
-      <div class="corner tr"></div>
-      <div class="corner bl"></div>
-      <div class="corner br"></div>
+    <div id="camera-container" style="position: relative;">
+      <div class="scan-frame" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; pointer-events: none;">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+      </div>
     </div>
   </div>
-  </div>
+  
   <div class="przycisk">
-  <button class="buttonn" id="manual-code-btn">Wpisz kod</button>
+    <button class="buttonn" id="manual-code-btn">Wpisz kod</button>
   </div>
   
-  <div id="scanned-result" style="display: none; margin: 20px; padding: 15px; background: white; border-radius: 10px; text-align: center;">
+  <div id="scanned-result">
     <p style="font-weight: 600; margin-bottom: 10px;">Zeskanowany kod:</p>
-    <p id="scanned-code" style="font-size: 18px; color: var(--text); word-break: break-all;"></p>
+    <p id="scanned-code" style="font-size: 18px; color: #333; word-break: break-all;"></p>
     <div style="margin-top: 15px;">
-        <button class="buttonn" onclick="continueScanning()" style="margin-bottom: 10px;">Skanuj dalej</button>
-        <button class="generate-random-btn" onclick="generateRandomScan()">Symuluj skanowanie losowego kodu</button>
+      <button class="buttonn" onclick="continueScanning()" style="margin-bottom: 10px;">Skanuj dalej</button>
+      <button class="generate-random-btn" onclick="generateRandomScan()">Symuluj skanowanie losowego kodu</button>
     </div>
   </div>
 
   <!-- Modal do wpisywania kodu -->
   <div id="code-modal" class="code-modal">
     <div class="modal-header">
-        <p class="modal-title">Kod</p>
-        <button class="modal-close">Zamknij</button>
+      <p class="modal-title">Kod</p>
+      <button class="modal-close">Zamknij</button>
     </div>
     <div class="modal-content">
-        <p style="color: #666; margin-bottom: 20px;">Wpisz lub wklej kod.</p>
-        <input type="text" class="modal-input" placeholder="Wpisz 6-cyfrowy kod" maxlength="6" id="code-input">
-        <button class="modal-button" id="verify-code">Zweryfikuj</button>
-        <button class="generate-random-btn" onclick="fillRandomCode()">Wpisz losowy kod</button>
+      <p style="color: #666; margin-bottom: 20px;">Wpisz lub wklej kod.</p>
+      <input type="text" class="modal-input" placeholder="Wpisz 6-cyfrowy kod" maxlength="6" id="code-input">
+      <button class="modal-button" id="verify-code">Zweryfikuj</button>
+      <button class="generate-random-btn" onclick="fillRandomCode()">Wpisz losowy kod</button>
     </div>
   </div>
 
@@ -275,7 +299,9 @@
     }
     
     function onScanSuccess(decodedText, decodedResult) {
-      html5QrCode.pause();
+      if (html5QrCode) {
+        html5QrCode.pause();
+      }
       
       // Sprawdź czy to nasz format kodu, jeśli nie, wygeneruj losowy
       if (decodedText.startsWith('VERIFY|')) {
@@ -290,6 +316,7 @@
     }
     
     function onScanFailure(error) {
+      // Ignoruj błędy skanowania
     }
     
     function showScanResult(code) {
