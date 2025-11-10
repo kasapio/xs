@@ -117,6 +117,22 @@
             max-width: 100%;
             max-height: 100%;
         }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+            margin-top: auto;
+            padding: 20px 0;
+        }
+        
+        .flag-img, .eagle-img {
+            width: 60px;
+            height: auto;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
@@ -265,39 +281,35 @@
                         <p class="expired-message">Kod wygasł!</p>
                         <button class="regenerate-btn" id="regenerate-btn">Wygeneruj nowy kod</button>
                     </div>
+                    <div class="modal-footer">
+                        <img src="images/gzot1Pt.gif" class="flag-img" alt="Flaga Polski">
+                        <img src="images/R5yccCK.gif" class="eagle-img" alt="Godło Polski">
+                    </div>
                 </div>
             `;
             
             document.body.appendChild(modal);
             
-            // Generuj kod QR
+            // Generuj kod QR - używamy prostszego podejścia
             try {
-                QRCode.toCanvas(document.getElementById('qr-canvas'), qrData, {
-                    width: 280,
+                var canvas = document.getElementById('qr-canvas');
+                QRCode.toCanvas(canvas, qrData, {
+                    width: 260,
                     margin: 1,
                     color: {
                         dark: '#000000',
                         light: '#FFFFFF'
-                    },
-                    errorCorrectionLevel: 'M'
-                }, function (err) {
-                    if (err) {
-                        console.error('Błąd generowania kodu QR:', err);
-                        // Fallback - wyświetl prosty kod QR jako obrazek
-                        document.getElementById('qr-code-container').innerHTML = 
-                            `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-                                <div style="font-size: 18px; margin-bottom: 10px;">Kod QR</div>
-                                <div style="font-size: 24px; font-weight: bold;">${numericCode}</div>
-                                <div style="font-size: 12px; color: #999; margin-top: 10px;">(symulacja kodu QR)</div>
-                            </div>`;
+                    }
+                }, function (error) {
+                    if (error) {
+                        console.error('Błąd generowania kodu QR:', error);
+                        // Użyj API do generowania kodu QR jako obrazka
+                        generateQRImage(qrData, numericCode);
                     }
                 });
             } catch (error) {
                 console.error('Błąd w generowaniu kodu QR:', error);
-                document.getElementById('qr-code-container').innerHTML = 
-                    `<div style="color: #999; text-align: center; display: flex; align-items: center; justify-content: center; height: 100%;">
-                        Błąd generowania kodu QR
-                    </div>`;
+                generateQRImage(qrData, numericCode);
             }
             
             // Timer
@@ -344,6 +356,23 @@
                 modal.remove();
                 showQRCode(); // Generuj nowy kod
             });
+        }
+
+        // Funkcja do generowania kodu QR jako obrazka (fallback)
+        function generateQRImage(qrData, numericCode) {
+            var qrContainer = document.getElementById('qr-code-container');
+            // Użyj zewnętrznego API do generowania kodu QR
+            var qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(qrData);
+            
+            var img = document.createElement('img');
+            img.src = qrImageUrl;
+            img.alt = 'Kod QR';
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'contain';
+            
+            qrContainer.innerHTML = '';
+            qrContainer.appendChild(img);
         }
     </script>
     <script src="assets/manifest.js"></script>
