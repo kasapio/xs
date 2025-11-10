@@ -17,7 +17,7 @@
       margin-bottom: 0px;
   display: flex;
   justify-content: center;
-  align-items: center;/* 100% wysokości minus paski */
+  align-items: center;
   padding: 20px 0;
 }
     #camera-container {
@@ -35,18 +35,16 @@
       height: 100%;
       object-fit: cover;
     }
-    /* Ramka na środku */
-.scan-frame {
+    .scan-frame {
   position: absolute;
   top: 50%;
   left: 50%;
   width: 200px;
   height: 200px;
   transform: translate(-50%, -50%);
-  pointer-events: none; /* nie blokuje kliknięć w kamerę */
+  pointer-events: none;
 }
 
-/* Wspólne style narożników */
 .corner {
   position: absolute;
   width: 70px;
@@ -55,7 +53,6 @@
   box-sizing: border-box;
 }
 
-/* Lewy górny róg */
 .corner.tl {
   top: 0;
   left: 0;
@@ -64,7 +61,6 @@
   border-top-left-radius: 25px
 }
 
-/* Prawy górny róg */
 .corner.tr {
   top: 0;
   right: 0;
@@ -73,7 +69,6 @@
   border-top-right-radius: 25px
 }
 
-/* Lewy dolny róg */
 .corner.bl {
   bottom: 0;
   left: 0;
@@ -82,7 +77,6 @@
   border-bottom-left-radius: 25px
 }
 
-/* Prawy dolny róg */
 .corner.br {
   bottom: 0;
   right: 0;
@@ -106,6 +100,68 @@
 .przycisk{
     text-align: center;
 }
+
+/* Modal dla wpisywania kodu */
+.code-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    z-index: 10000;
+    font-family: Arial, sans-serif;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+}
+
+.modal-content {
+    padding: 20px;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 18px;
+    margin-bottom: 20px;
+    text-align: center;
+    letter-spacing: 3px;
+}
+
+.modal-button {
+    width: 100%;
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+  }
 
   </style>
 </head>
@@ -146,7 +202,6 @@
   <p style="margin-top: 70px; margin-left: 30px; margin-bottom: 0px; font-size: 14px;">Umieść kod QR w ramce, aby go zeskanować.</p>
   <div class="main_wrapper" style="margin-top: 0px;">
   <div id="camera-container" style="position: relative;">
-    <!-- Html5Qrcode utworzy tutaj element do skanowania -->
     <div class="scan-frame" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; pointer-events: none;">
       <div class="corner tl"></div>
       <div class="corner tr"></div>
@@ -162,7 +217,20 @@
   <div id="scanned-result" style="display: none; margin: 20px; padding: 15px; background: white; border-radius: 10px; text-align: center;">
     <p style="font-weight: 600; margin-bottom: 10px;">Zeskanowany kod:</p>
     <p id="scanned-code" style="font-size: 18px; color: var(--text); word-break: break-all;"></p>
-    <button class="buttonn" onclick="document.getElementById('scanned-result').style.display='none'; html5QrCode.resume();" style="margin-top: 10px;">Skanuj dalej</button>
+    <button class="buttonn" onclick="document.getElementById('scanned-result').style.display='none'; if(window.html5QrCode) html5QrCode.resume();" style="margin-top: 10px;">Skanuj dalej</button>
+  </div>
+
+  <!-- Modal do wpisywania kodu -->
+  <div id="code-modal" class="code-modal">
+    <div class="modal-header">
+        <p class="modal-title">Kod</p>
+        <button class="modal-close">Zamknij</button>
+    </div>
+    <div class="modal-content">
+        <p style="color: #666; margin-bottom: 20px;">Wpisz lub wklej kod.</p>
+        <input type="text" class="modal-input" placeholder="Wpisz 6-cyfrowy kod" maxlength="6" id="code-input">
+        <button class="modal-button" id="verify-code">Zweryfikuj</button>
+    </div>
   </div>
 
   <script>
@@ -178,7 +246,6 @@
           aspectRatio: 1.0
         };
         
-        // Uruchom skanowanie
         await html5QrCode.start(
           { facingMode: "environment" }, 
           config,
@@ -187,28 +254,18 @@
         );
       } catch (err) {
         console.error("Nie udało się uruchomić skanera:", err);
-        // Fallback do zwykłej kamery
         startCamera();
       }
     }
     
     function onScanSuccess(decodedText, decodedResult) {
-      // Zatrzymaj skanowanie
       html5QrCode.pause();
       
-      // Wyświetl wynik
       document.getElementById('scanned-code').textContent = decodedText;
       document.getElementById('scanned-result').style.display = 'block';
-      
-      // Opcjonalnie: automatyczne wznowienie po 3 sekundach
-      // setTimeout(() => {
-      //   document.getElementById('scanned-result').style.display = 'none';
-      //   html5QrCode.resume();
-      // }, 3000);
     }
     
     function onScanFailure(error) {
-      // Błędy są ignorowane - skanowanie kontynuuje się
     }
     
     async function startCamera() {
@@ -230,29 +287,50 @@
       }
     }
 
-    // Uruchom skanowanie QR po załadowaniu strony
     document.addEventListener('DOMContentLoaded', function() {
       if (typeof Html5Qrcode !== 'undefined') {
         startQRScanning();
       } else {
-        // Fallback jeśli biblioteka nie załadowała się
         startCamera();
       }
     });
     
-    // Przycisk "Wpisz kod"
+    // Obsługa modala do wpisywania kodu
     document.getElementById('manual-code-btn').addEventListener('click', function() {
-      var code = prompt("Wprowadź kod QR:");
-      if (code) {
+      document.getElementById('code-modal').style.display = 'block';
+      document.getElementById('code-input').focus();
+      if (html5QrCode) {
+        html5QrCode.pause();
+      }
+    });
+    
+    document.querySelector('.modal-close').addEventListener('click', function() {
+      document.getElementById('code-modal').style.display = 'none';
+      if (html5QrCode) {
+        html5QrCode.resume();
+      }
+    });
+    
+    document.getElementById('verify-code').addEventListener('click', function() {
+      var code = document.getElementById('code-input').value.trim();
+      if (code.length === 6 && /^\d+$/.test(code)) {
         document.getElementById('scanned-code').textContent = code;
         document.getElementById('scanned-result').style.display = 'block';
-        if (html5QrCode) {
-          html5QrCode.pause();
-        }
+        document.getElementById('code-modal').style.display = 'none';
+        document.getElementById('code-input').value = '';
+      } else {
+        alert('Proszę wpisać poprawny 6-cyfrowy kod');
+      }
+    });
+    
+    // Automatyczne weryfikowanie po wpisaniu 6 cyfr
+    document.getElementById('code-input').addEventListener('input', function() {
+      if (this.value.length === 6) {
+        document.getElementById('verify-code').click();
       }
     });
   </script>
   <script src="assets/bar.js?v=2.0"></script>
-    <script src="assets/manifest.js"></script>
+  <script src="assets/manifest.js"></script>
 </body>
 </html>
