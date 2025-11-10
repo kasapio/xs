@@ -173,19 +173,6 @@
       box-sizing: border-box;
     }
 
-    .generate-random-btn {
-      width: 100%;
-      background-color: #f0f0f0;
-      color: #333;
-      border: 1px solid #ddd;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      margin-top: 10px;
-      box-sizing: border-box;
-    }
-
     #scanned-result {
       display: none;
       margin: 20px;
@@ -255,7 +242,6 @@
     <p id="scanned-code" style="font-size: 18px; color: #333; word-break: break-all;"></p>
     <div style="margin-top: 15px;">
       <button class="buttonn" onclick="continueScanning()" style="margin-bottom: 10px;">Skanuj dalej</button>
-      <button class="generate-random-btn" onclick="generateRandomScan()">Symuluj skanowanie losowego kodu</button>
     </div>
   </div>
 
@@ -269,7 +255,6 @@
       <p style="color: #666; margin-bottom: 20px;">Wpisz lub wklej kod.</p>
       <input type="text" class="modal-input" placeholder="Wpisz 6-cyfrowy kod" maxlength="6" id="code-input">
       <button class="modal-button" id="verify-code">Zweryfikuj</button>
-      <button class="generate-random-btn" onclick="fillRandomCode()">Wpisz losowy kod</button>
     </div>
   </div>
 
@@ -333,15 +318,6 @@
       if (html5QrCode) {
         html5QrCode.resume();
       }
-    }
-    
-    function generateRandomScan() {
-      const randomCode = generateRandomCode();
-      showScanResult(randomCode);
-    }
-    
-    function fillRandomCode() {
-      document.getElementById('code-input').value = generateRandomCode();
     }
     
     async function startCamera() {
